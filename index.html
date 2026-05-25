@@ -1,0 +1,1913 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NEBULA STATION — Conditionals Mission</title>
+<style>
+/* ============================================================
+   NEBULA STATION — ESL Conditionals Game
+   Zero / First / Second Conditional
+   Level: A2–B1
+   ============================================================ */
+
+:root {
+  --bg-dark: #050a1a;
+  --bg-panel: rgba(10, 20, 50, 0.85);
+  --bg-glass: rgba(255,255,255,0.04);
+  --neon-blue:   #00d4ff;
+  --neon-green:  #00ff9d;
+  --neon-purple: #bf5fff;
+  --neon-red:    #ff4466;
+  --neon-yellow: #ffdd00;
+  --neon-orange: #ff8c00;
+  --text-main:   #d0e8ff;
+  --text-dim:    #5a7aaa;
+  --border-glow: rgba(0,212,255,0.3);
+  --zero-color:   #00d4ff;
+  --first-color:  #00ff9d;
+  --second-color: #bf5fff;
+  --font-head: 'Courier New', monospace;
+  --font-body: 'Trebuchet MS', sans-serif;
+  --radius: 12px;
+  --transition: 0.35s cubic-bezier(.4,0,.2,1);
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html, body {
+  width: 100%; height: 100%;
+  background: var(--bg-dark);
+  color: var(--text-main);
+  font-family: var(--font-body);
+  overflow: hidden;
+  user-select: none;
+}
+
+/* ===== STARFIELD ===== */
+#starfield {
+  position: fixed; inset: 0; z-index: 0;
+  pointer-events: none;
+}
+.star {
+  position: absolute;
+  border-radius: 50%;
+  background: white;
+  animation: twinkle var(--d, 3s) infinite alternate ease-in-out;
+}
+@keyframes twinkle { from { opacity: .1; } to { opacity: 1; } }
+
+/* ===== PARTICLES ===== */
+.particle {
+  position: fixed;
+  border-radius: 50%;
+  pointer-events: none;
+  animation: floatUp var(--pd, 6s) linear infinite;
+  opacity: 0;
+}
+@keyframes floatUp {
+  0%   { opacity: 0; transform: translateY(0) scale(1); }
+  20%  { opacity: .6; }
+  80%  { opacity: .3; }
+  100% { opacity: 0; transform: translateY(-100vh) scale(.3); }
+}
+
+/* ===== SCREEN SYSTEM ===== */
+.screen {
+  position: fixed; inset: 0; z-index: 10;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  padding: 20px;
+  opacity: 0; pointer-events: none;
+  transition: opacity var(--transition);
+  overflow-y: auto;
+}
+.screen.active {
+  opacity: 1; pointer-events: all;
+}
+
+/* ===== BUTTONS ===== */
+.btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+  padding: 14px 32px;
+  border: 2px solid currentColor;
+  border-radius: var(--radius);
+  background: transparent;
+  color: var(--neon-blue);
+  font-family: var(--font-head);
+  font-size: 1rem;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: all .2s;
+  position: relative;
+  overflow: hidden;
+}
+.btn::before {
+  content: '';
+  position: absolute; inset: 0;
+  background: currentColor;
+  opacity: 0;
+  transition: opacity .2s;
+}
+.btn:hover::before { opacity: .12; }
+.btn:hover { box-shadow: 0 0 18px currentColor; transform: translateY(-2px); }
+.btn:active { transform: translateY(0); }
+.btn-green  { color: var(--neon-green); }
+.btn-purple { color: var(--neon-purple); }
+.btn-red    { color: var(--neon-red); }
+.btn-yellow { color: var(--neon-yellow); }
+.btn-lg { font-size: 1.2rem; padding: 18px 44px; }
+
+/* ===== PANEL ===== */
+.panel {
+  background: var(--bg-panel);
+  border: 1px solid var(--border-glow);
+  border-radius: 18px;
+  backdrop-filter: blur(16px);
+  box-shadow: 0 0 40px rgba(0,212,255,.08), inset 0 1px 0 rgba(255,255,255,.06);
+  padding: 32px;
+}
+
+/* ===== GLOW TEXT ===== */
+.glow-blue   { text-shadow: 0 0 12px var(--neon-blue),   0 0 30px var(--neon-blue); }
+.glow-green  { text-shadow: 0 0 12px var(--neon-green),  0 0 30px var(--neon-green); }
+.glow-purple { text-shadow: 0 0 12px var(--neon-purple), 0 0 30px var(--neon-purple); }
+.glow-red    { text-shadow: 0 0 12px var(--neon-red),    0 0 30px var(--neon-red); }
+.glow-yellow { text-shadow: 0 0 12px var(--neon-yellow), 0 0 30px var(--neon-yellow); }
+
+/* ========================================================
+   SCREEN 0 — PRELOAD
+   ======================================================== */
+#screen-preload {
+  background: var(--bg-dark);
+  z-index: 100;
+}
+.preload-logo {
+  font-family: var(--font-head);
+  font-size: clamp(1.4rem, 5vw, 2.8rem);
+  letter-spacing: 8px;
+  text-transform: uppercase;
+  color: var(--neon-blue);
+  animation: pulse 1.2s ease-in-out infinite alternate;
+}
+@keyframes pulse { from { opacity: .4; } to { opacity: 1; } }
+.preload-bar-wrap {
+  width: min(400px, 80vw);
+  height: 6px;
+  background: rgba(255,255,255,.1);
+  border-radius: 3px;
+  margin-top: 24px;
+  overflow: hidden;
+}
+.preload-bar {
+  height: 100%;
+  background: linear-gradient(90deg, var(--neon-blue), var(--neon-purple));
+  border-radius: 3px;
+  width: 0;
+  animation: loadBar 2.8s ease-out forwards;
+}
+@keyframes loadBar { to { width: 100%; } }
+.preload-msg {
+  margin-top: 14px;
+  font-size: .85rem;
+  letter-spacing: 3px;
+  color: var(--text-dim);
+  text-transform: uppercase;
+}
+
+/* ========================================================
+   ASTRONAUT CHARACTER
+   ======================================================== */
+.astronaut {
+  width: 90px; height: 110px;
+  position: relative;
+  animation: astronautFloat 3s ease-in-out infinite alternate;
+}
+@keyframes astronautFloat {
+  from { transform: translateY(0); }
+  to   { transform: translateY(-14px); }
+}
+.astro-helmet {
+  width: 70px; height: 70px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #1a3a6a, #0d2044);
+  border: 3px solid var(--neon-blue);
+  position: absolute; top: 0; left: 10px;
+  box-shadow: 0 0 20px var(--neon-blue), inset 0 0 10px rgba(0,212,255,.2);
+}
+.astro-visor {
+  width: 42px; height: 28px;
+  border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%;
+  background: linear-gradient(135deg, rgba(0,212,255,.5), rgba(0,100,200,.3));
+  position: absolute; top: 18px; left: 14px;
+  box-shadow: 0 0 8px var(--neon-blue);
+}
+.astro-eye { width: 6px; height: 6px; background: var(--neon-blue); border-radius: 50%;
+  position: absolute; top: 22px; box-shadow: 0 0 6px var(--neon-blue); }
+.astro-eye.l { left: 20px; }
+.astro-eye.r { left: 44px; }
+.astro-body {
+  width: 60px; height: 42px;
+  background: linear-gradient(160deg, #1e3a7a, #0f2050);
+  border: 2px solid var(--neon-blue);
+  border-radius: 12px;
+  position: absolute; bottom: 0; left: 15px;
+  box-shadow: 0 0 12px rgba(0,212,255,.3);
+}
+.astro-badge {
+  width: 18px; height: 14px;
+  background: rgba(0,212,255,.25);
+  border: 1px solid var(--neon-blue);
+  border-radius: 4px;
+  position: absolute; top: 8px; left: 21px;
+}
+.astro-arm { width: 14px; height: 30px; background: linear-gradient(180deg,#1e3a7a,#0f2050);
+  border: 2px solid var(--neon-blue); border-radius: 8px; position: absolute; bottom: 2px; }
+.astro-arm.l { left: 2px; transform: rotate(-20deg); }
+.astro-arm.r { right: 2px; transform: rotate(20deg); }
+.astro-leg { width: 16px; height: 24px; background: linear-gradient(180deg,#1e3a7a,#0f2050);
+  border: 2px solid var(--neon-blue); border-radius: 8px; position: absolute; bottom: -22px; }
+.astro-leg.l { left: 14px; }
+.astro-leg.r { right: 14px; }
+.astro-antenna {
+  width: 3px; height: 18px;
+  background: var(--neon-blue);
+  position: absolute; top: -16px; left: 33px;
+  border-radius: 2px;
+  box-shadow: 0 0 6px var(--neon-blue);
+}
+.astro-antenna::after {
+  content: '';
+  width: 8px; height: 8px;
+  background: var(--neon-yellow);
+  border-radius: 50%;
+  position: absolute; top: -4px; left: -2.5px;
+  box-shadow: 0 0 8px var(--neon-yellow);
+  animation: blink .8s infinite alternate;
+}
+@keyframes blink { from { opacity: 1; } to { opacity: .2; } }
+
+/* ========================================================
+   SCREEN 1 — MAIN MENU
+   ======================================================== */
+.menu-title {
+  font-family: var(--font-head);
+  font-size: clamp(1.8rem, 6vw, 3.4rem);
+  letter-spacing: 6px;
+  text-transform: uppercase;
+  line-height: 1.1;
+  text-align: center;
+  color: var(--neon-blue);
+}
+.menu-subtitle {
+  font-size: .9rem;
+  letter-spacing: 4px;
+  color: var(--text-dim);
+  text-transform: uppercase;
+  margin-top: 6px;
+  text-align: center;
+}
+.menu-btns { display: flex; flex-direction: column; gap: 14px; width: 100%; max-width: 320px; margin-top: 30px; }
+.version-tag {
+  position: fixed; bottom: 14px; right: 18px;
+  font-size: .7rem; letter-spacing: 2px; color: var(--text-dim);
+  text-transform: uppercase;
+}
+
+/* ========================================================
+   SCREEN 2 — HOW TO PLAY
+   ======================================================== */
+.howto-content {
+  width: min(700px, 90vw);
+  max-height: 80vh;
+  overflow-y: auto;
+}
+.howto-content::-webkit-scrollbar { width: 4px; }
+.howto-content::-webkit-scrollbar-track { background: rgba(255,255,255,.05); }
+.howto-content::-webkit-scrollbar-thumb { background: var(--neon-blue); border-radius: 2px; }
+.rule-block {
+  margin-bottom: 20px;
+  padding: 16px 20px;
+  border-left: 3px solid var(--neon-blue);
+  background: rgba(0,212,255,.05);
+  border-radius: 0 10px 10px 0;
+}
+.rule-block h3 { font-family: var(--font-head); font-size: .95rem; letter-spacing: 2px; margin-bottom: 6px; }
+.rule-block p { font-size: .88rem; line-height: 1.6; color: var(--text-dim); }
+.rule-block.green  { border-color: var(--neon-green); background: rgba(0,255,157,.05); }
+.rule-block.purple { border-color: var(--neon-purple); background: rgba(191,95,255,.05); }
+
+/* ========================================================
+   SCREEN 3 — MODE SELECT
+   ======================================================== */
+.mode-cards { display: flex; gap: 20px; flex-wrap: wrap; justify-content: center; margin-top: 24px; }
+.mode-card {
+  width: min(220px, 85vw);
+  padding: 28px 20px;
+  border: 2px solid;
+  border-radius: 18px;
+  background: var(--bg-panel);
+  cursor: pointer;
+  transition: all .25s;
+  text-align: center;
+  backdrop-filter: blur(12px);
+}
+.mode-card:hover { transform: translateY(-6px) scale(1.03); }
+.mode-card .mode-icon { font-size: 2.4rem; margin-bottom: 10px; }
+.mode-card h2 { font-family: var(--font-head); font-size: 1rem; letter-spacing: 3px; margin-bottom: 6px; }
+.mode-card p  { font-size: .8rem; color: var(--text-dim); line-height: 1.5; }
+.mode-card.zero   { border-color: var(--zero-color);   color: var(--zero-color); }
+.mode-card.first  { border-color: var(--first-color);  color: var(--first-color); }
+.mode-card.second { border-color: var(--second-color); color: var(--second-color); }
+.mode-card.zero:hover   { box-shadow: 0 0 30px var(--zero-color); }
+.mode-card.first:hover  { box-shadow: 0 0 30px var(--first-color); }
+.mode-card.second:hover { box-shadow: 0 0 30px var(--second-color); }
+
+/* ========================================================
+   SCREEN 4 — GAME
+   ======================================================== */
+#screen-game { justify-content: flex-start; padding: 0; }
+.game-wrap {
+  width: 100%; max-width: 860px;
+  margin: 0 auto;
+  padding: 16px;
+  display: flex; flex-direction: column; gap: 12px;
+}
+
+/* HUD */
+.hud {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr 1fr;
+  gap: 10px;
+  padding: 12px 16px;
+  background: var(--bg-panel);
+  border: 1px solid var(--border-glow);
+  border-radius: var(--radius);
+  backdrop-filter: blur(12px);
+}
+.hud-item { display: flex; flex-direction: column; align-items: center; }
+.hud-label { font-size: .65rem; letter-spacing: 2px; color: var(--text-dim); text-transform: uppercase; }
+.hud-value { font-family: var(--font-head); font-size: 1.3rem; font-weight: bold; }
+
+/* Energy bar */
+.energy-wrap { width: 100%; }
+.energy-bar-bg {
+  height: 8px;
+  background: rgba(255,255,255,.1);
+  border-radius: 4px;
+  overflow: hidden;
+}
+.energy-bar-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--neon-green), var(--neon-blue));
+  border-radius: 4px;
+  transition: width .5s;
+  box-shadow: 0 0 8px var(--neon-green);
+}
+
+/* Mission label */
+.mission-label {
+  text-align: center;
+  font-family: var(--font-head);
+  font-size: .75rem;
+  letter-spacing: 3px;
+  padding: 8px 16px;
+  border-radius: 30px;
+  border: 1px solid;
+  display: inline-block;
+  margin: 0 auto;
+}
+.mission-label.zero   { color: var(--zero-color);   border-color: var(--zero-color);   background: rgba(0,212,255,.07); }
+.mission-label.first  { color: var(--first-color);  border-color: var(--first-color);  background: rgba(0,255,157,.07); }
+.mission-label.second { color: var(--second-color); border-color: var(--second-color); background: rgba(191,95,255,.07); }
+
+/* Question card */
+.q-card {
+  background: var(--bg-panel);
+  border: 1px solid var(--border-glow);
+  border-radius: 18px;
+  padding: 28px;
+  backdrop-filter: blur(16px);
+  position: relative;
+  overflow: hidden;
+  min-height: 220px;
+}
+.q-card::before {
+  content: '';
+  position: absolute; top: 0; left: 0; right: 0; height: 3px;
+  background: linear-gradient(90deg, var(--neon-blue), var(--neon-purple));
+  opacity: .6;
+}
+.q-type-tag {
+  font-size: .65rem; letter-spacing: 3px; text-transform: uppercase;
+  color: var(--text-dim); margin-bottom: 10px;
+}
+.q-text {
+  font-size: clamp(1rem, 3vw, 1.3rem);
+  line-height: 1.6;
+  color: var(--text-main);
+  margin-bottom: 22px;
+}
+.q-text .blank {
+  display: inline-block;
+  border-bottom: 2px solid var(--neon-blue);
+  min-width: 80px;
+  text-align: center;
+  color: var(--neon-blue);
+  font-weight: bold;
+  padding: 0 4px;
+}
+
+/* Options */
+.options { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+@media(max-width:500px) { .options { grid-template-columns: 1fr; } }
+.opt-btn {
+  padding: 14px 18px;
+  background: rgba(255,255,255,.04);
+  border: 1.5px solid rgba(255,255,255,.15);
+  border-radius: 10px;
+  color: var(--text-main);
+  font-family: var(--font-body);
+  font-size: .95rem;
+  cursor: pointer;
+  transition: all .18s;
+  text-align: left;
+}
+.opt-btn:hover { border-color: var(--neon-blue); background: rgba(0,212,255,.07); transform: translateX(4px); }
+.opt-btn.correct { border-color: var(--neon-green) !important; background: rgba(0,255,157,.15) !important; color: var(--neon-green); box-shadow: 0 0 14px var(--neon-green); }
+.opt-btn.wrong   { border-color: var(--neon-red)   !important; background: rgba(255,68,102,.15)  !important; color: var(--neon-red);   box-shadow: 0 0 14px var(--neon-red); }
+.opt-btn:disabled { cursor: not-allowed; }
+
+/* Drag & Drop */
+.drag-area {
+  display: flex; flex-wrap: wrap; gap: 8px;
+  min-height: 50px;
+  padding: 10px;
+  border: 2px dashed rgba(0,212,255,.3);
+  border-radius: 10px;
+  margin-bottom: 12px;
+  align-items: center;
+}
+.drag-area.drag-target {
+  border-color: var(--neon-blue);
+  background: rgba(0,212,255,.05);
+}
+.drag-chip {
+  padding: 8px 16px;
+  background: rgba(0,212,255,.12);
+  border: 1px solid var(--neon-blue);
+  border-radius: 30px;
+  color: var(--neon-blue);
+  font-size: .9rem;
+  cursor: grab;
+  transition: all .15s;
+  touch-action: none;
+}
+.drag-chip:hover { background: rgba(0,212,255,.25); box-shadow: 0 0 10px var(--neon-blue); }
+.drag-chip.placed { opacity: .4; pointer-events: none; }
+.sentence-slots {
+  font-size: clamp(.95rem, 2.5vw, 1.2rem);
+  line-height: 2.2;
+  color: var(--text-main);
+}
+.slot {
+  display: inline-block;
+  min-width: 90px;
+  border-bottom: 2px dashed var(--neon-blue);
+  text-align: center;
+  padding: 2px 8px;
+  margin: 0 4px;
+  color: var(--neon-blue);
+  cursor: pointer;
+  transition: all .15s;
+}
+.slot.filled { border-style: solid; background: rgba(0,212,255,.1); }
+.slot:hover { background: rgba(0,212,255,.07); }
+
+/* Input type */
+.input-row { display: flex; gap: 10px; align-items: center; }
+.q-input {
+  flex: 1;
+  padding: 14px 18px;
+  background: rgba(255,255,255,.05);
+  border: 1.5px solid rgba(0,212,255,.3);
+  border-radius: 10px;
+  color: var(--text-main);
+  font-size: 1rem;
+  font-family: var(--font-body);
+  outline: none;
+  transition: border-color .2s;
+}
+.q-input:focus { border-color: var(--neon-blue); box-shadow: 0 0 12px rgba(0,212,255,.2); }
+.q-input.correct { border-color: var(--neon-green); }
+.q-input.wrong   { border-color: var(--neon-red); }
+
+/* Feedback */
+.feedback {
+  padding: 14px 20px;
+  border-radius: 10px;
+  font-size: .9rem;
+  line-height: 1.5;
+  display: none;
+  animation: fadeInUp .3s;
+}
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.feedback.show { display: block; }
+.feedback.correct {
+  background: rgba(0,255,157,.12);
+  border: 1px solid var(--neon-green);
+  color: var(--neon-green);
+}
+.feedback.wrong {
+  background: rgba(255,68,102,.12);
+  border: 1px solid var(--neon-red);
+  color: var(--text-main);
+}
+.feedback strong { color: var(--neon-yellow); }
+
+/* Progress */
+.progress-wrap {
+  display: flex; gap: 6px; align-items: center;
+}
+.prog-label { font-size: .7rem; letter-spacing: 2px; color: var(--text-dim); text-transform: uppercase; white-space: nowrap; }
+.prog-bar-bg {
+  flex: 1; height: 6px;
+  background: rgba(255,255,255,.08);
+  border-radius: 3px; overflow: hidden;
+}
+.prog-bar-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--neon-blue), var(--neon-purple));
+  border-radius: 3px;
+  transition: width .4s;
+}
+
+/* Next btn */
+.next-btn-row { display: flex; justify-content: flex-end; margin-top: 8px; }
+
+/* ========================================================
+   SCREEN 5 — GAME OVER
+   ======================================================== */
+.gameover-title {
+  font-family: var(--font-head);
+  font-size: clamp(2rem, 8vw, 4rem);
+  letter-spacing: 6px;
+  text-transform: uppercase;
+  text-align: center;
+  color: var(--neon-red);
+  animation: glitch 2s infinite;
+}
+@keyframes glitch {
+  0%,92%,100% { transform: translate(0); filter: none; }
+  93% { transform: translate(-3px,1px); filter: hue-rotate(90deg); }
+  95% { transform: translate(3px,-1px); filter: hue-rotate(-90deg); }
+  97% { transform: translate(-1px,2px); filter: none; }
+}
+.result-stats {
+  display: grid; grid-template-columns: 1fr 1fr;
+  gap: 14px; margin: 24px 0; width: 100%;
+}
+.stat-box {
+  background: var(--bg-glass);
+  border: 1px solid rgba(255,255,255,.1);
+  border-radius: 10px;
+  padding: 16px;
+  text-align: center;
+}
+.stat-box .val { font-family: var(--font-head); font-size: 1.8rem; font-weight: bold; }
+.stat-box .lbl { font-size: .7rem; letter-spacing: 2px; color: var(--text-dim); text-transform: uppercase; margin-top: 4px; }
+
+/* ========================================================
+   SCREEN 6 — VICTORY
+   ======================================================== */
+.victory-title {
+  font-family: var(--font-head);
+  font-size: clamp(2rem, 8vw, 3.8rem);
+  letter-spacing: 6px;
+  text-transform: uppercase;
+  text-align: center;
+  color: var(--neon-yellow);
+  animation: victoryPulse 1.5s ease-in-out infinite alternate;
+}
+@keyframes victoryPulse {
+  from { text-shadow: 0 0 20px var(--neon-yellow), 0 0 60px var(--neon-yellow); }
+  to   { text-shadow: 0 0 40px var(--neon-yellow), 0 0 100px var(--neon-yellow), 0 0 6px white; }
+}
+.confetti-piece {
+  position: fixed;
+  width: 8px; height: 8px;
+  border-radius: 2px;
+  animation: confettiFall var(--cd, 3s) linear var(--cdelay, 0s) infinite;
+  pointer-events: none; z-index: 200;
+}
+@keyframes confettiFall {
+  0%   { transform: translateY(-20px) rotate(0deg); opacity: 1; }
+  100% { transform: translateY(110vh) rotate(720deg); opacity: 0; }
+}
+.trophy { font-size: 5rem; animation: trophySpin 3s ease-in-out infinite alternate; }
+@keyframes trophySpin {
+  from { transform: rotate(-10deg) scale(.95); }
+  to   { transform: rotate(10deg) scale(1.05); }
+}
+
+/* ========================================================
+   OVERLAY / POPUP
+   ======================================================== */
+#overlay {
+  position: fixed; inset: 0; z-index: 500;
+  background: rgba(0,0,0,.7);
+  display: flex; align-items: center; justify-content: center;
+  opacity: 0; pointer-events: none;
+  transition: opacity .3s;
+  padding: 20px;
+}
+#overlay.show { opacity: 1; pointer-events: all; }
+.popup {
+  background: linear-gradient(145deg, #0a1830, #061020);
+  border: 1px solid var(--border-glow);
+  border-radius: 18px;
+  padding: 30px;
+  max-width: 460px;
+  width: 100%;
+  box-shadow: 0 0 60px rgba(0,212,255,.2);
+  animation: popIn .3s cubic-bezier(.17,.67,.41,1.3);
+}
+@keyframes popIn {
+  from { transform: scale(.8); opacity: 0; }
+  to   { transform: scale(1); opacity: 1; }
+}
+.popup h2 { font-family: var(--font-head); letter-spacing: 3px; text-transform: uppercase; margin-bottom: 12px; }
+.popup p  { font-size: .9rem; line-height: 1.6; color: var(--text-dim); margin-bottom: 18px; }
+
+/* ========================================================
+   TOAST
+   ======================================================== */
+#toast {
+  position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%) translateY(20px);
+  background: rgba(10,30,60,.95);
+  border: 1px solid var(--neon-blue);
+  border-radius: 30px;
+  padding: 10px 24px;
+  font-size: .9rem;
+  letter-spacing: 1px;
+  z-index: 600;
+  opacity: 0;
+  transition: all .3s;
+  white-space: nowrap;
+  pointer-events: none;
+}
+#toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+/* ========================================================
+   EMERGENCY ALERT
+   ======================================================== */
+.emergency-banner {
+  position: fixed; top: 0; left: 0; right: 0;
+  background: var(--neon-red);
+  color: #000;
+  font-family: var(--font-head);
+  font-size: .8rem;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  padding: 8px 20px;
+  text-align: center;
+  z-index: 700;
+  transform: translateY(-100%);
+  transition: transform .4s;
+}
+.emergency-banner.show { transform: translateY(0); }
+
+/* ========================================================
+   BADGES
+   ======================================================== */
+.badge-popup {
+  position: fixed; right: 20px; top: 80px;
+  background: linear-gradient(135deg, #1a0a40, #0a1840);
+  border: 2px solid var(--neon-yellow);
+  border-radius: 14px;
+  padding: 14px 18px;
+  z-index: 600;
+  opacity: 0;
+  transform: translateX(120%);
+  transition: all .4s;
+  max-width: 200px;
+  box-shadow: 0 0 20px var(--neon-yellow);
+}
+.badge-popup.show { opacity: 1; transform: translateX(0); }
+.badge-popup .badge-icon { font-size: 2rem; text-align: center; margin-bottom: 6px; }
+.badge-popup .badge-name { font-family: var(--font-head); font-size: .75rem; letter-spacing: 2px; color: var(--neon-yellow); text-align: center; text-transform: uppercase; }
+
+/* ========================================================
+   DIFFICULTY SCREEN
+   ======================================================== */
+.diff-cards { display: flex; gap: 16px; flex-wrap: wrap; justify-content: center; margin-top: 20px; }
+.diff-card {
+  width: min(180px, 80vw);
+  padding: 22px 16px;
+  border: 2px solid;
+  border-radius: 14px;
+  background: var(--bg-panel);
+  cursor: pointer;
+  text-align: center;
+  transition: all .25s;
+  backdrop-filter: blur(12px);
+}
+.diff-card:hover { transform: scale(1.05); }
+.diff-card h3 { font-family: var(--font-head); letter-spacing: 2px; font-size: .95rem; margin-bottom: 6px; }
+.diff-card p  { font-size: .75rem; color: var(--text-dim); }
+.diff-card.easy   { border-color: var(--neon-green);  color: var(--neon-green);  }
+.diff-card.medium { border-color: var(--neon-yellow); color: var(--neon-yellow); }
+.diff-card.hard   { border-color: var(--neon-red);    color: var(--neon-red);    }
+.diff-card.easy:hover   { box-shadow: 0 0 24px var(--neon-green);  }
+.diff-card.medium:hover { box-shadow: 0 0 24px var(--neon-yellow); }
+.diff-card.hard:hover   { box-shadow: 0 0 24px var(--neon-red);    }
+.diff-active { box-shadow: 0 0 24px currentColor; opacity: 1; }
+
+/* ========================================================
+   COMBO INDICATOR
+   ======================================================== */
+.combo-pop {
+  position: fixed; top: 50%; left: 50%;
+  transform: translate(-50%, -50%) scale(0);
+  font-family: var(--font-head);
+  font-size: 2.5rem;
+  font-weight: bold;
+  color: var(--neon-yellow);
+  text-shadow: 0 0 20px var(--neon-yellow);
+  pointer-events: none;
+  z-index: 800;
+  transition: transform .15s cubic-bezier(.17,.67,.41,1.5), opacity .4s;
+  opacity: 0;
+}
+.combo-pop.show { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+
+/* scan line overlay */
+body::after {
+  content: '';
+  position: fixed; inset: 0;
+  background: repeating-linear-gradient(0deg, rgba(0,0,0,.03) 0px, rgba(0,0,0,.03) 1px, transparent 1px, transparent 2px);
+  pointer-events: none; z-index: 1000;
+}
+
+/* scrollable game area */
+#screen-game { overflow-y: auto; }
+.screen { scroll-behavior: smooth; }
+
+/* ===== Difficulty selector in menu ===== */
+.diff-inline { display: flex; gap: 8px; justify-content: center; }
+.diff-pill {
+  padding: 6px 16px;
+  border-radius: 30px;
+  border: 1.5px solid;
+  font-size: .75rem;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: all .2s;
+}
+.diff-pill.easy   { border-color: var(--neon-green);  color: var(--neon-green);  }
+.diff-pill.medium { border-color: var(--neon-yellow); color: var(--neon-yellow); }
+.diff-pill.hard   { border-color: var(--neon-red);    color: var(--neon-red);    }
+.diff-pill.sel    { background: currentColor; color: #000 !important; }
+
+.screen-title {
+  font-family: var(--font-head);
+  font-size: clamp(1.2rem, 4vw, 1.8rem);
+  letter-spacing: 5px;
+  text-transform: uppercase;
+  text-align: center;
+  color: var(--neon-blue);
+  margin-bottom: 8px;
+}
+.screen-subtitle {
+  font-size: .8rem;
+  letter-spacing: 3px;
+  color: var(--text-dim);
+  text-align: center;
+  text-transform: uppercase;
+  margin-bottom: 20px;
+}
+
+/* XP bar */
+.xp-row { display: flex; align-items: center; gap: 8px; }
+.xp-label { font-size: .65rem; letter-spacing: 2px; color: var(--neon-purple); text-transform: uppercase; white-space: nowrap; }
+.xp-bar-bg { flex: 1; height: 5px; background: rgba(191,95,255,.2); border-radius: 3px; overflow: hidden; }
+.xp-bar-fill { height: 100%; background: var(--neon-purple); border-radius: 3px; transition: width .5s; box-shadow: 0 0 8px var(--neon-purple); }
+</style>
+</head>
+<body>
+
+<!-- ====== STARFIELD ====== -->
+<div id="starfield"></div>
+
+<!-- ====== EMERGENCY BANNER ====== -->
+<div class="emergency-banner" id="emergency-banner">⚠ WARNING — SYSTEM ANOMALY DETECTED — REMAIN CALM ⚠</div>
+
+<!-- ====== TOAST ====== -->
+<div id="toast"></div>
+
+<!-- ====== COMBO POP ====== -->
+<div class="combo-pop" id="combo-pop"></div>
+
+<!-- ====== BADGE POPUP ====== -->
+<div class="badge-popup" id="badge-popup">
+  <div class="badge-icon" id="badge-icon"></div>
+  <div class="badge-name" id="badge-name"></div>
+</div>
+
+<!-- ====== OVERLAY ====== -->
+<div id="overlay">
+  <div class="popup" id="popup-inner">
+    <h2 id="popup-title">Title</h2>
+    <p id="popup-body">Body</p>
+    <button class="btn" onclick="closeOverlay()">◀ CLOSE</button>
+  </div>
+</div>
+
+<!-- ======================================================
+     SCREEN 0 — PRELOAD
+     ====================================================== -->
+<div class="screen active" id="screen-preload">
+  <div class="preload-logo glow-blue">NEBULA STATION</div>
+  <div class="preload-bar-wrap"><div class="preload-bar"></div></div>
+  <div class="preload-msg" id="preload-msg">Connecting to Space Station…</div>
+</div>
+
+<!-- ======================================================
+     SCREEN 1 — MAIN MENU
+     ====================================================== -->
+<div class="screen" id="screen-menu">
+  <div style="display:flex;flex-direction:column;align-items:center;gap:6px;margin-bottom:20px;">
+    <!-- Astronaut character -->
+    <div class="astronaut" style="margin-bottom:10px;">
+      <div class="astro-antenna"></div>
+      <div class="astro-helmet">
+        <div class="astro-visor"></div>
+        <div class="astro-eye l"></div>
+        <div class="astro-eye r"></div>
+      </div>
+      <div class="astro-body">
+        <div class="astro-badge"></div>
+        <div class="astro-arm l"></div>
+        <div class="astro-arm r"></div>
+      </div>
+      <div class="astro-leg l"></div>
+      <div class="astro-leg r"></div>
+    </div>
+    <div class="menu-title glow-blue">NEBULA<br>STATION</div>
+    <div class="menu-subtitle">English Grammar · Conditionals Mission</div>
+  </div>
+
+  <div class="menu-btns">
+    <button class="btn btn-lg" onclick="showScreen('screen-mode')">🚀 START MISSION</button>
+    <button class="btn btn-green" onclick="showScreen('screen-howto')">📖 HOW TO PLAY</button>
+    <div style="margin-top:4px;">
+      <div style="font-size:.7rem;letter-spacing:2px;color:var(--text-dim);text-transform:uppercase;text-align:center;margin-bottom:8px;">Difficulty</div>
+      <div class="diff-inline">
+        <span class="diff-pill easy"  onclick="setDiff('easy',this)">Easy</span>
+        <span class="diff-pill medium sel" onclick="setDiff('medium',this)">Medium</span>
+        <span class="diff-pill hard"  onclick="setDiff('hard',this)">Hard</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="version-tag">v1.0 · NEBULA STATION</div>
+</div>
+
+<!-- ======================================================
+     SCREEN — HOW TO PLAY
+     ====================================================== -->
+<div class="screen" id="screen-howto">
+  <div class="panel howto-content">
+    <div class="screen-title">HOW TO PLAY</div>
+    <div class="screen-subtitle">Mission Briefing</div>
+
+    <div class="rule-block">
+      <h3 style="color:var(--neon-blue);">🎯 OBJECTIVE</h3>
+      <p>Complete grammar missions aboard Nebula Station. Answer questions about Zero, First, and Second Conditionals correctly to keep the ship running!</p>
+    </div>
+    <div class="rule-block">
+      <h3 style="color:var(--zero-color);">⚡ ZERO CONDITIONAL (Blue)</h3>
+      <p><strong>Structure:</strong> If + present simple, present simple<br>
+      <strong>Use:</strong> Facts, laws of nature, always-true situations<br>
+      <em>Example: If water freezes, it turns into ice.</em></p>
+    </div>
+    <div class="rule-block green">
+      <h3 style="color:var(--first-color);">🌟 FIRST CONDITIONAL (Green)</h3>
+      <p><strong>Structure:</strong> If + present simple, will + verb<br>
+      <strong>Use:</strong> Real future possibilities<br>
+      <em>Example: If I study hard, I will pass the exam.</em></p>
+    </div>
+    <div class="rule-block purple">
+      <h3 style="color:var(--second-color);">🔮 SECOND CONDITIONAL (Purple)</h3>
+      <p><strong>Structure:</strong> If + past simple, would + verb<br>
+      <strong>Use:</strong> Imaginary / unreal situations<br>
+      <em>Example: If I had a spaceship, I would travel to Mars.</em></p>
+    </div>
+    <div class="rule-block">
+      <h3 style="color:var(--neon-yellow);">⚙️ GAME MECHANICS</h3>
+      <p>• Answer correctly to earn points & XP<br>
+      • Build combo streaks for bonus points<br>
+      • Keep the ship energy above zero<br>
+      • Wrong answers drain ship energy<br>
+      • Complete all 10 questions to win!</p>
+    </div>
+    <div style="text-align:center;margin-top:20px;">
+      <button class="btn" onclick="showScreen('screen-menu')">◀ BACK TO BASE</button>
+    </div>
+  </div>
+</div>
+
+<!-- ======================================================
+     SCREEN — MODE SELECT
+     ====================================================== -->
+<div class="screen" id="screen-mode">
+  <div class="screen-title">CHOOSE MISSION TYPE</div>
+  <div class="screen-subtitle">Select your conditional training module</div>
+
+  <div class="mode-cards">
+    <div class="mode-card zero" onclick="startGame('zero')">
+      <div class="mode-icon">⚡</div>
+      <h2>Zero<br>Conditional</h2>
+      <p>Facts &amp; laws of nature. Always true!</p>
+    </div>
+    <div class="mode-card first" onclick="startGame('first')">
+      <div class="mode-icon">🌟</div>
+      <h2>First<br>Conditional</h2>
+      <p>Real future possibilities.</p>
+    </div>
+    <div class="mode-card second" onclick="startGame('second')">
+      <div class="mode-icon">🔮</div>
+      <h2>Second<br>Conditional</h2>
+      <p>Imaginary &amp; unreal situations.</p>
+    </div>
+  </div>
+
+  <div style="margin-top:28px;">
+    <button class="btn" onclick="showScreen('screen-menu')">◀ BACK</button>
+  </div>
+</div>
+
+<!-- ======================================================
+     SCREEN — GAME
+     ====================================================== -->
+<div class="screen" id="screen-game">
+  <div class="game-wrap">
+    <!-- HUD -->
+    <div class="hud">
+      <div class="hud-item">
+        <span class="hud-label">Score</span>
+        <span class="hud-value" id="hud-score" style="color:var(--neon-blue)">0</span>
+      </div>
+      <div class="hud-item">
+        <span class="hud-label">Streak</span>
+        <span class="hud-value" id="hud-streak" style="color:var(--neon-yellow)">0</span>
+      </div>
+      <div class="hud-item">
+        <span class="hud-label">Q</span>
+        <span class="hud-value" id="hud-qnum" style="color:var(--neon-green)">1/10</span>
+      </div>
+      <div class="hud-item">
+        <span class="hud-label">Timer</span>
+        <span class="hud-value" id="hud-timer" style="color:var(--neon-red)">30</span>
+      </div>
+    </div>
+
+    <!-- Energy -->
+    <div class="energy-wrap">
+      <div style="display:flex;justify-content:space-between;margin-bottom:4px;">
+        <span style="font-size:.65rem;letter-spacing:2px;color:var(--text-dim);text-transform:uppercase;">Ship Energy</span>
+        <span style="font-size:.65rem;letter-spacing:2px;color:var(--neon-green);" id="energy-txt">100%</span>
+      </div>
+      <div class="energy-bar-bg"><div class="energy-bar-fill" id="energy-bar" style="width:100%"></div></div>
+    </div>
+
+    <!-- XP -->
+    <div class="xp-row">
+      <span class="xp-label">XP Lv.<span id="xp-level">1</span></span>
+      <div class="xp-bar-bg"><div class="xp-bar-fill" id="xp-bar" style="width:0%"></div></div>
+      <span style="font-size:.65rem;color:var(--neon-purple);letter-spacing:1px;" id="xp-txt">0/100</span>
+    </div>
+
+    <!-- Mission label -->
+    <div style="text-align:center;">
+      <span class="mission-label" id="mission-label">ZERO CONDITIONAL</span>
+    </div>
+
+    <!-- Progress -->
+    <div class="progress-wrap">
+      <span class="prog-label">Progress</span>
+      <div class="prog-bar-bg"><div class="prog-bar-fill" id="prog-bar" style="width:0%"></div></div>
+    </div>
+
+    <!-- Question card -->
+    <div class="q-card" id="q-card">
+      <div class="q-type-tag" id="q-type-tag">MULTIPLE CHOICE</div>
+      <div class="q-text" id="q-text">Loading question…</div>
+      <div id="q-body"></div>
+    </div>
+
+    <!-- Feedback -->
+    <div class="feedback" id="feedback"></div>
+
+    <!-- Next button -->
+    <div class="next-btn-row">
+      <button class="btn btn-green" id="next-btn" style="display:none;" onclick="nextQuestion()">NEXT MISSION ▶</button>
+    </div>
+
+    <!-- Abort -->
+    <div style="text-align:center;margin-bottom:8px;">
+      <button class="btn btn-red" style="padding:8px 20px;font-size:.75rem;" onclick="confirmAbort()">✕ ABORT MISSION</button>
+    </div>
+  </div>
+</div>
+
+<!-- ======================================================
+     SCREEN — GAME OVER
+     ====================================================== -->
+<div class="screen" id="screen-gameover">
+  <div class="panel" style="width:min(500px,90vw);text-align:center;">
+    <div class="gameover-title">MISSION<br>FAILED</div>
+    <p style="color:var(--text-dim);margin:12px 0;font-size:.85rem;letter-spacing:2px;">SHIP SYSTEMS OFFLINE</p>
+
+    <div class="result-stats" id="go-stats"></div>
+
+    <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin-top:8px;">
+      <button class="btn btn-red" onclick="restartSameMode()">🔄 RETRY MISSION</button>
+      <button class="btn" onclick="showScreen('screen-mode')">◀ MODE SELECT</button>
+    </div>
+  </div>
+</div>
+
+<!-- ======================================================
+     SCREEN — VICTORY
+     ====================================================== -->
+<div class="screen" id="screen-victory">
+  <div class="panel" style="width:min(500px,90vw);text-align:center;">
+    <div class="trophy">🏆</div>
+    <div class="victory-title">MISSION<br>COMPLETE!</div>
+    <p style="color:var(--text-dim);margin:12px 0;font-size:.85rem;letter-spacing:2px;">ALL SYSTEMS OPERATIONAL</p>
+
+    <div class="result-stats" id="v-stats"></div>
+
+    <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin-top:8px;">
+      <button class="btn btn-yellow" onclick="restartSameMode()">🔄 PLAY AGAIN</button>
+      <button class="btn btn-green" onclick="showScreen('screen-mode')">🚀 NEW MISSION</button>
+    </div>
+  </div>
+</div>
+
+<!-- ======================================================
+     JAVASCRIPT
+     ====================================================== -->
+<script>
+/* ============================================================
+   GAME DATA — 40 QUESTIONS
+   ============================================================ */
+const QUESTIONS = {
+  zero: [
+    // Multiple choice
+    { type:'mc', text:'If you heat water to 100°C, it ___.',
+      opts:['boil','boils','will boil','would boil'], ans:1,
+      expl:'Zero Conditional: present simple + present simple. This is always true.' },
+    { type:'mc', text:'Plants die if they ___ water.',
+      opts:['not get','doesn\'t get','don\'t get','won\'t get'], ans:2,
+      expl:'Zero Conditional: use "don\'t get" (present simple negative) for general facts.' },
+    { type:'mc', text:'If you mix red and blue, you ___ purple.',
+      opts:['get','will get','got','would get'], ans:0,
+      expl:'Zero Conditional: present simple + present simple. A scientific fact.' },
+    { type:'mc', text:'Ice melts if the temperature ___ above 0°C.',
+      opts:['rise','rises','will rise','would rise'], ans:1,
+      expl:'Zero Conditional: use present simple in the if-clause.' },
+    { type:'mc', text:'If you touch fire, it ___.',
+      opts:['hurt','hurts','will hurt','would hurt'], ans:1,
+      expl:'Zero Conditional: always true — present simple in both clauses.' },
+    // Sentence completion / input
+    { type:'mc', text:'If people eat too much sugar, they ___ weight.',
+      opts:['gaining','gain','will gaining','would gained'], ans:1,
+      expl:'Zero Conditional: general truth → present simple + present simple.' },
+    { type:'mc', text:'Metal ___ if you heat it.',
+      opts:['expand','expands','will expand','would expand'], ans:1,
+      expl:'Zero Conditional: present simple in both clauses.' },
+    { type:'mc', text:'If you drop a ball, it ___ to the ground.',
+      opts:['fall','falls','will fall','will falls'], ans:1,
+      expl:'Zero Conditional: gravity is a law of nature — always present simple.' },
+    // Drag & drop
+    { type:'drag', text:'___ + present simple = Zero Conditional',
+      sentence:'If [ice] [heats], it [melts].',
+      chips:['ice','heats','melts','freezes','cools'],
+      slotAnswers:['ice','heats','melts'],
+      expl:'Zero Conditional: both parts use present simple. Arrange the correct words.' },
+    { type:'mc', text:'If bacteria ___ warm conditions, they multiply quickly.',
+      opts:['find','finds','will find','found'], ans:0,
+      expl:'Zero Conditional: with plural "bacteria" use base form "find".' },
+    { type:'mc', text:'What type of conditional is: "If you heat ice, it melts"?',
+      opts:['Zero','First','Second','Third'], ans:0,
+      expl:'Zero Conditional describes scientific facts and always-true situations.' },
+    { type:'mc', text:'If a dog ___ hungry, it barks.',
+      opts:['is','will be','was','were'], ans:0,
+      expl:'Zero Conditional: present simple "is" in the if-clause.' },
+    { type:'mc', text:'Electricity ___ if you get wet.',
+      opts:['dangerous','being dangerous','is dangerous','will be dangerous'], ans:2,
+      expl:'Zero Conditional: present simple + present simple.' },
+    { type:'drag', text:'Build the Zero Conditional sentence:',
+      sentence:'If the sun [sets], the sky [turns] [orange].',
+      chips:['sets','turns','orange','rises','pink','yellow'],
+      slotAnswers:['sets','turns','orange'],
+      expl:'Zero Conditional: present simple in both parts.' },
+  ],
+  first: [
+    { type:'mc', text:'If I study hard, I ___ pass the exam.',
+      opts:['will','would','am','was'], ans:0,
+      expl:'First Conditional: If + present simple, will + verb. A real future possibility.' },
+    { type:'mc', text:'If it ___ tomorrow, we will cancel the launch.',
+      opts:['rain','will rain','rains','rained'], ans:2,
+      expl:'First Conditional: use present simple (not will) in the if-clause.' },
+    { type:'mc', text:'She will miss the rocket if she ___ late.',
+      opts:['is','will be','was','would be'], ans:0,
+      expl:'First Conditional: present simple in the if-clause.' },
+    { type:'mc', text:'If we leave now, we ___ catch the shuttle.',
+      opts:['will','would','can','could'], ans:0,
+      expl:'First Conditional: will + base verb in the result clause.' },
+    { type:'mc', text:'If you ___ your spacesuit, you will be safe.',
+      opts:['wear','will wear','wore','had worn'], ans:0,
+      expl:'First Conditional: present simple in the if-clause.' },
+    { type:'mc', text:'I will call you if I ___ a signal.',
+      opts:['find','will find','found','would find'], ans:0,
+      expl:'First Conditional: present simple in the if-clause, will in the result.' },
+    { type:'mc', text:'If the mission succeeds, the crew ___ famous.',
+      opts:['will become','would become','becomes','become'], ans:0,
+      expl:'First Conditional: will + base verb for a real future result.' },
+    { type:'mc', text:'What type of conditional is: "If it rains, I will stay home"?',
+      opts:['Zero','First','Second','Third'], ans:1,
+      expl:'First Conditional: real future possibility with will in the result clause.' },
+    { type:'drag', text:'Build the First Conditional sentence:',
+      sentence:'If I [find] the alien, I [will call] the [commander].',
+      chips:['find','will call','commander','found','would call','captain'],
+      slotAnswers:['find','will call','commander'],
+      expl:'First Conditional: present simple in if-clause, will + verb in result.' },
+    { type:'mc', text:'If the robot ___ the code, the door will open.',
+      opts:['crack','cracks','will crack','cracked'], ans:1,
+      expl:'First Conditional: present simple (third person singular) in the if-clause.' },
+    { type:'mc', text:'We ___ more planets if we build a better telescope.',
+      opts:['discover','will discover','discovered','would discover'], ans:1,
+      expl:'First Conditional: will + verb in the result clause.' },
+    { type:'mc', text:'If the oxygen tank ___ empty, the alarm will sound.',
+      opts:['runs','will run','ran','would run'], ans:0,
+      expl:'First Conditional: present simple in the if-clause.' },
+    { type:'drag', text:'Build the First Conditional sentence:',
+      sentence:'If the crew [trains] hard, they [will succeed] in the [mission].',
+      chips:['trains','will succeed','mission','trained','would succeed','plan'],
+      slotAnswers:['trains','will succeed','mission'],
+      expl:'First Conditional: train (present simple) → will succeed (result).' },
+    { type:'mc', text:'If I eat before the trip, I ___ feel better.',
+      opts:["'ll",'would',"won't",'might not'], ans:0,
+      expl:"First Conditional: 'll is a short form of will — a real future result." },
+  ],
+  second: [
+    { type:'mc', text:'If I had a spaceship, I ___ travel to Mars.',
+      opts:['will','would','could','can'], ans:1,
+      expl:'Second Conditional: If + past simple, would + verb. An imaginary situation.' },
+    { type:'mc', text:'If she ___ a robot, she would never clean again.',
+      opts:['has','had','will have','would have'], ans:1,
+      expl:'Second Conditional: use past simple (had) in the if-clause.' },
+    { type:'mc', text:'I would speak to aliens if I ___ their language.',
+      opts:['know','knew','will know','had known'], ans:1,
+      expl:'Second Conditional: past simple in the if-clause.' },
+    { type:'mc', text:'If the planet ___ closer, we could see it without a telescope.',
+      opts:['is','was','were','will be'], ans:2,
+      expl:'Second Conditional: use "were" (formal) or "was" in the if-clause.' },
+    { type:'mc', text:'She ___ be a great commander if she trained more.',
+      opts:['will','would','can','is'], ans:1,
+      expl:'Second Conditional: would + base verb in the result clause.' },
+    { type:'mc', text:'If I ___ invisible, I would explore any planet.',
+      opts:['am','were','will be','had been'], ans:1,
+      expl:'Second Conditional: "were" is the correct past simple (subjunctive) form.' },
+    { type:'mc', text:'What type of conditional is: "If I won the lottery, I would buy a rocket"?',
+      opts:['Zero','First','Second','Third'], ans:2,
+      expl:'Second Conditional: imaginary/unreal situation with would.' },
+    { type:'mc', text:'If we ___ more fuel, we could fly to Jupiter.',
+      opts:['have','had','will have','would have'], ans:1,
+      expl:'Second Conditional: past simple in the if-clause.' },
+    { type:'drag', text:'Build the Second Conditional sentence:',
+      sentence:'If I [were] an astronaut, I [would visit] every [planet].',
+      chips:['were','would visit','planet','was','will visit','star'],
+      slotAnswers:['were','would visit','planet'],
+      expl:'Second Conditional: were (past simple) → would visit (result).' },
+    { type:'mc', text:'He would not be lost if he ___ a map.',
+      opts:['carries','carried','will carry','would carry'], ans:1,
+      expl:'Second Conditional: past simple in the if-clause.' },
+    { type:'mc', text:'If aliens ___ Earth, what would they think?',
+      opts:['visit','visited','will visit','are visiting'], ans:1,
+      expl:'Second Conditional: imaginary scenario — use past simple in if-clause.' },
+    { type:'mc', text:'I ___ join the crew if the mission weren\'t so dangerous.',
+      opts:['will','would','can','should'], ans:1,
+      expl:'Second Conditional: would + base verb in the result clause.' },
+    { type:'drag', text:'Build the Second Conditional sentence:',
+      sentence:'If gravity [disappeared], we [would float] through [space].',
+      chips:['disappeared','would float','space','disappears','will float','time'],
+      slotAnswers:['disappeared','would float','space'],
+      expl:'Second Conditional: past simple + would + verb.' },
+    { type:'mc', text:'What is the correct Second Conditional form? "If I ___ you, I would ask for help."',
+      opts:['am','was','were','will be'], ans:2,
+      expl:'"If I were you" is the classic Second Conditional expression with were.' },
+  ]
+};
+
+/* ============================================================
+   GAME STATE
+   ============================================================ */
+let state = {
+  screen: 'preload',
+  mode: 'zero',
+  difficulty: 'medium',
+  score: 0,
+  streak: 0,
+  maxStreak: 0,
+  energy: 100,
+  xp: 0,
+  xpLevel: 1,
+  qIndex: 0,
+  questions: [],
+  answered: false,
+  totalQ: 10,
+  correct: 0,
+  wrong: 0,
+  timerVal: 30,
+  timerInterval: null,
+  dragSelected: null
+};
+
+const DIFF = { easy: { time: 45, penalty: 8 }, medium: { time: 30, penalty: 12 }, hard: { time: 20, penalty: 18 } };
+
+/* ============================================================
+   AUDIO — Web Audio API
+   ============================================================ */
+let audioCtx;
+function getAudio() {
+  if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  return audioCtx;
+}
+function playTone(freq, type, dur, vol=0.3) {
+  try {
+    const ac = getAudio();
+    const osc = ac.createOscillator();
+    const gain = ac.createGain();
+    osc.connect(gain); gain.connect(ac.destination);
+    osc.type = type; osc.frequency.setValueAtTime(freq, ac.currentTime);
+    gain.gain.setValueAtTime(vol, ac.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, ac.currentTime + dur);
+    osc.start(); osc.stop(ac.currentTime + dur);
+  } catch(e){}
+}
+function playSuccess() {
+  playTone(523, 'sine', .1);
+  setTimeout(()=>playTone(659,'sine',.1),100);
+  setTimeout(()=>playTone(784,'sine',.2),200);
+}
+function playError() {
+  playTone(220,'sawtooth',.15,.2);
+  setTimeout(()=>playTone(196,'sawtooth',.15,.2),160);
+}
+function playClick() { playTone(440,'square',.05,.1); }
+function playCombo() {
+  [523,659,784,1047].forEach((f,i)=>setTimeout(()=>playTone(f,'sine',.12),i*80));
+}
+
+/* ============================================================
+   STARS & PARTICLES
+   ============================================================ */
+function buildStars() {
+  const sf = document.getElementById('starfield');
+  for (let i = 0; i < 160; i++) {
+    const s = document.createElement('div');
+    s.className = 'star';
+    const sz = Math.random() * 2.5 + 0.5;
+    s.style.cssText = `
+      width:${sz}px;height:${sz}px;
+      left:${Math.random()*100}%;
+      top:${Math.random()*100}%;
+      --d:${(Math.random()*3+1.5).toFixed(1)}s;
+      animation-delay:${(Math.random()*4).toFixed(1)}s;
+    `;
+    sf.appendChild(s);
+  }
+}
+function buildParticles() {
+  const colors = ['var(--neon-blue)','var(--neon-purple)','var(--neon-green)'];
+  for (let i = 0; i < 18; i++) {
+    const p = document.createElement('div');
+    p.className = 'particle';
+    const sz = Math.random()*3+1;
+    p.style.cssText = `
+      width:${sz}px;height:${sz}px;
+      left:${Math.random()*100}%;
+      bottom:-10px;
+      background:${colors[Math.floor(Math.random()*3)]};
+      --pd:${(Math.random()*8+4).toFixed(1)}s;
+      animation-delay:${(Math.random()*6).toFixed(1)}s;
+    `;
+    document.body.appendChild(p);
+  }
+}
+
+/* ============================================================
+   SCREEN NAVIGATION
+   ============================================================ */
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  state.screen = id;
+}
+
+/* ============================================================
+   PRELOAD
+   ============================================================ */
+const PRELOAD_MSGS = [
+  'Connecting to Space Station…',
+  'Calibrating Grammar Sensors…',
+  'Loading Conditional Modules…',
+  'Scanning Language Database…',
+  'Systems Ready. Welcome Aboard.',
+];
+let preloadIdx = 0;
+function startPreload() {
+  buildStars();
+  buildParticles();
+  const msgEl = document.getElementById('preload-msg');
+  const interval = setInterval(() => {
+    preloadIdx++;
+    if (preloadIdx < PRELOAD_MSGS.length) msgEl.textContent = PRELOAD_MSGS[preloadIdx];
+  }, 550);
+  setTimeout(() => {
+    clearInterval(interval);
+    showScreen('screen-menu');
+    loadSave();
+  }, 3000);
+}
+
+/* ============================================================
+   SAVE / LOAD
+   ============================================================ */
+function saveSave() {
+  try {
+    localStorage.setItem('nebulaState', JSON.stringify({
+      xp: state.xp, xpLevel: state.xpLevel, difficulty: state.difficulty
+    }));
+  } catch(e){}
+}
+function loadSave() {
+  try {
+    const d = JSON.parse(localStorage.getItem('nebulaState') || '{}');
+    if (d.xp) state.xp = d.xp;
+    if (d.xpLevel) state.xpLevel = d.xpLevel;
+    if (d.difficulty) {
+      state.difficulty = d.difficulty;
+      document.querySelectorAll('.diff-pill').forEach(p => p.classList.remove('sel'));
+      const pill = document.querySelector(`.diff-pill.${d.difficulty}`);
+      if (pill) pill.classList.add('sel');
+    }
+  } catch(e){}
+}
+
+/* ============================================================
+   DIFFICULTY
+   ============================================================ */
+function setDiff(d, el) {
+  playClick();
+  state.difficulty = d;
+  document.querySelectorAll('.diff-pill').forEach(p => p.classList.remove('sel'));
+  el.classList.add('sel');
+  saveSave();
+  showToast(`Difficulty: ${d.toUpperCase()}`);
+}
+
+/* ============================================================
+   GAME START
+   ============================================================ */
+function startGame(mode) {
+  playClick();
+  state.mode = mode;
+  state.score = 0;
+  state.streak = 0;
+  state.maxStreak = 0;
+  state.energy = 100;
+  state.qIndex = 0;
+  state.correct = 0;
+  state.wrong = 0;
+  state.answered = false;
+
+  // Shuffle questions and pick 10
+  const pool = [...QUESTIONS[mode]];
+  shuffle(pool);
+  state.questions = pool.slice(0, state.totalQ);
+
+  // Update mission label
+  const mLabel = document.getElementById('mission-label');
+  const labels = { zero:'ZERO CONDITIONAL', first:'FIRST CONDITIONAL', second:'SECOND CONDITIONAL' };
+  const classes = { zero:'zero', first:'first', second:'second' };
+  mLabel.textContent = labels[mode];
+  mLabel.className = 'mission-label ' + classes[mode];
+
+  updateHUD();
+  showScreen('screen-game');
+  renderQuestion();
+
+  // Random events
+  scheduleRandomEvents();
+}
+
+function restartSameMode() { playClick(); startGame(state.mode); }
+
+/* ============================================================
+   QUESTION RENDERER
+   ============================================================ */
+function renderQuestion() {
+  clearTimer();
+  state.answered = false;
+  document.getElementById('feedback').className = 'feedback';
+  document.getElementById('feedback').textContent = '';
+  document.getElementById('next-btn').style.display = 'none';
+
+  const q = state.questions[state.qIndex];
+  document.getElementById('q-type-tag').textContent =
+    q.type === 'mc' ? '🎯 MULTIPLE CHOICE' : '🔧 BUILD THE SENTENCE';
+  document.getElementById('q-text').innerHTML = q.text;
+
+  const body = document.getElementById('q-body');
+  body.innerHTML = '';
+
+  if (q.type === 'mc') renderMC(q, body);
+  else if (q.type === 'drag') renderDrag(q, body);
+
+  // Update progress
+  const pct = (state.qIndex / state.totalQ) * 100;
+  document.getElementById('prog-bar').style.width = pct + '%';
+  document.getElementById('hud-qnum').textContent = `${state.qIndex+1}/${state.totalQ}`;
+
+  // Start timer
+  startTimer();
+}
+
+function renderMC(q, body) {
+  const grid = document.createElement('div');
+  grid.className = 'options';
+  q.opts.forEach((opt, i) => {
+    const btn = document.createElement('button');
+    btn.className = 'opt-btn';
+    btn.textContent = `${String.fromCharCode(65+i)}. ${opt}`;
+    btn.onclick = () => { if (!state.answered) checkMC(i, q, btn); };
+    grid.appendChild(btn);
+  });
+  body.appendChild(grid);
+}
+
+function checkMC(idx, q, btn) {
+  if (state.answered) return;
+  state.answered = true;
+  clearTimer();
+
+  const isCorrect = idx === q.ans;
+  const opts = document.querySelectorAll('.opt-btn');
+  opts[q.ans].classList.add('correct');
+  if (!isCorrect) btn.classList.add('wrong');
+
+  handleAnswer(isCorrect, q.expl);
+}
+
+function renderDrag(q, body) {
+  // Sentence with slots
+  const sentenceEl = document.createElement('div');
+  sentenceEl.className = 'sentence-slots';
+  let html = q.sentence;
+  let si = 0;
+  html = html.replace(/\[([^\]]+)\]/g, (_, word) => {
+    return `<span class="slot" data-slot="${si++}" data-answer="${word}" onclick="handleSlotClick(this)">___</span>`;
+  });
+  sentenceEl.innerHTML = html;
+  body.appendChild(sentenceEl);
+
+  // Chip bank
+  const bankLabel = document.createElement('div');
+  bankLabel.style.cssText = 'font-size:.7rem;letter-spacing:2px;color:var(--text-dim);text-transform:uppercase;margin:12px 0 6px;';
+  bankLabel.textContent = 'Word Bank — tap a word then tap a slot:';
+  body.appendChild(bankLabel);
+
+  const bank = document.createElement('div');
+  bank.className = 'drag-area';
+  bank.id = 'chip-bank';
+  const shuffledChips = [...q.chips]; shuffle(shuffledChips);
+  shuffledChips.forEach(chip => {
+    const c = document.createElement('div');
+    c.className = 'drag-chip';
+    c.textContent = chip;
+    c.dataset.word = chip;
+    c.onclick = () => selectChip(c);
+    bank.appendChild(c);
+  });
+  body.appendChild(bank);
+
+  // Check button
+  const checkBtn = document.createElement('button');
+  checkBtn.className = 'btn btn-green';
+  checkBtn.style.marginTop = '12px';
+  checkBtn.textContent = '✓ CHECK SENTENCE';
+  checkBtn.onclick = () => checkDrag(q);
+  body.appendChild(checkBtn);
+
+  state.dragSelected = null;
+}
+
+function selectChip(el) {
+  if (el.classList.contains('placed')) return;
+  playClick();
+  document.querySelectorAll('.drag-chip').forEach(c => c.style.boxShadow = '');
+  if (state.dragSelected === el) {
+    state.dragSelected = null;
+  } else {
+    state.dragSelected = el;
+    el.style.boxShadow = '0 0 14px var(--neon-yellow)';
+  }
+}
+
+function handleSlotClick(slotEl) {
+  if (!state.dragSelected) return;
+  const word = state.dragSelected.dataset.word;
+  const prevWord = slotEl.dataset.current;
+
+  // If slot already filled, return old word to bank
+  if (prevWord) {
+    const bank = document.getElementById('chip-bank');
+    bank.querySelectorAll('.drag-chip').forEach(c => {
+      if (c.dataset.word === prevWord) c.classList.remove('placed');
+    });
+  }
+
+  slotEl.textContent = word;
+  slotEl.dataset.current = word;
+  slotEl.classList.add('filled');
+  state.dragSelected.classList.add('placed');
+  state.dragSelected.style.boxShadow = '';
+  state.dragSelected = null;
+  playClick();
+}
+
+function checkDrag(q) {
+  if (state.answered) return;
+  const slots = document.querySelectorAll('.slot');
+  let allFilled = true;
+  let allCorrect = true;
+
+  slots.forEach((sl, i) => {
+    const current = sl.dataset.current || '';
+    if (!current) { allFilled = false; return; }
+    if (current.toLowerCase() !== q.slotAnswers[i].toLowerCase()) allCorrect = false;
+  });
+
+  if (!allFilled) { showToast('Fill all blanks first!'); return; }
+
+  state.answered = true;
+  clearTimer();
+
+  // Colour slots
+  slots.forEach((sl, i) => {
+    const current = sl.dataset.current || '';
+    if (current.toLowerCase() === q.slotAnswers[i].toLowerCase()) {
+      sl.style.color = 'var(--neon-green)';
+      sl.style.borderColor = 'var(--neon-green)';
+    } else {
+      sl.style.color = 'var(--neon-red)';
+      sl.style.borderColor = 'var(--neon-red)';
+      sl.textContent = q.slotAnswers[i] + ' ✓';
+    }
+  });
+
+  handleAnswer(allCorrect, q.expl);
+}
+
+/* ============================================================
+   HANDLE ANSWER
+   ============================================================ */
+function handleAnswer(isCorrect, expl) {
+  const fb = document.getElementById('feedback');
+
+  if (isCorrect) {
+    state.correct++;
+    state.streak++;
+    if (state.streak > state.maxStreak) state.maxStreak = state.streak;
+
+    const bonus = state.streak >= 3 ? Math.floor(state.streak * 10) : 0;
+    const pts = 100 + bonus;
+    state.score += pts;
+    state.xp += 20 + bonus;
+
+    playSuccess();
+    fb.className = 'feedback correct show';
+    fb.innerHTML = `✅ CORRECT! <strong>+${pts} pts${bonus ? ` (Combo ×${state.streak})` : ''}</strong><br><span style="font-size:.85rem;">${expl}</span>`;
+
+    // Combo display
+    if (state.streak >= 3) {
+      showComboPop(`COMBO ×${state.streak}!`);
+      playCombo();
+    }
+
+    checkBadges();
+  } else {
+    state.wrong++;
+    state.streak = 0;
+    const penalty = DIFF[state.difficulty].penalty;
+    state.energy = Math.max(0, state.energy - penalty);
+
+    playError();
+    flashScreen('red');
+    fb.className = 'feedback wrong show';
+    fb.innerHTML = `❌ INCORRECT.<br><span style="font-size:.85rem;color:var(--text-dim);">${expl}</span>`;
+  }
+
+  updateHUD();
+  document.getElementById('next-btn').style.display = 'flex';
+
+  // Game over check
+  if (state.energy <= 0) {
+    setTimeout(() => endGame(false), 1200);
+    return;
+  }
+}
+
+/* ============================================================
+   NEXT QUESTION
+   ============================================================ */
+function nextQuestion() {
+  playClick();
+  state.qIndex++;
+  if (state.qIndex >= state.totalQ) {
+    endGame(true);
+    return;
+  }
+  renderQuestion();
+}
+
+/* ============================================================
+   END GAME
+   ============================================================ */
+function endGame(victory) {
+  clearTimer();
+  clearAllEvents();
+  const acc = Math.round((state.correct / state.totalQ) * 100);
+  const statsHTML = `
+    <div class="stat-box"><div class="val" style="color:var(--neon-blue)">${state.score}</div><div class="lbl">Score</div></div>
+    <div class="stat-box"><div class="val" style="color:var(--neon-green)">${state.correct}/${state.totalQ}</div><div class="lbl">Correct</div></div>
+    <div class="stat-box"><div class="val" style="color:var(--neon-yellow)">${state.maxStreak}</div><div class="lbl">Best Streak</div></div>
+    <div class="stat-box"><div class="val" style="color:var(--neon-purple)">${acc}%</div><div class="lbl">Accuracy</div></div>
+  `;
+
+  if (victory) {
+    document.getElementById('v-stats').innerHTML = statsHTML;
+    showScreen('screen-victory');
+    spawnConfetti();
+    state.xp += 100;
+  } else {
+    document.getElementById('go-stats').innerHTML = statsHTML;
+    showScreen('screen-gameover');
+  }
+  updateXP();
+  saveSave();
+}
+
+/* ============================================================
+   TIMER
+   ============================================================ */
+function startTimer() {
+  state.timerVal = DIFF[state.difficulty].time;
+  updateTimerDisplay();
+  state.timerInterval = setInterval(() => {
+    state.timerVal--;
+    updateTimerDisplay();
+    if (state.timerVal <= 0) {
+      clearTimer();
+      if (!state.answered) {
+        state.answered = true;
+        state.streak = 0;
+        state.wrong++;
+        const penalty = DIFF[state.difficulty].penalty;
+        state.energy = Math.max(0, state.energy - penalty);
+        playError();
+        const fb = document.getElementById('feedback');
+        fb.className = 'feedback wrong show';
+        fb.innerHTML = `⏰ TIME'S UP! Ship energy drained.<br><span style="font-size:.85rem;color:var(--text-dim);">${state.questions[state.qIndex].expl}</span>`;
+        updateHUD();
+        document.getElementById('next-btn').style.display = 'flex';
+        if (state.energy <= 0) setTimeout(() => endGame(false), 1200);
+      }
+    }
+  }, 1000);
+}
+function clearTimer() {
+  if (state.timerInterval) { clearInterval(state.timerInterval); state.timerInterval = null; }
+}
+function updateTimerDisplay() {
+  const el = document.getElementById('hud-timer');
+  el.textContent = state.timerVal;
+  el.style.color = state.timerVal <= 8 ? 'var(--neon-red)' : 'var(--neon-yellow)';
+  if (state.timerVal <= 8) el.style.animation = 'blink .4s infinite alternate';
+  else el.style.animation = '';
+}
+
+/* ============================================================
+   HUD UPDATE
+   ============================================================ */
+function updateHUD() {
+  document.getElementById('hud-score').textContent = state.score;
+  document.getElementById('hud-streak').textContent = state.streak;
+
+  // Energy
+  const ep = Math.max(0, state.energy);
+  document.getElementById('energy-bar').style.width = ep + '%';
+  document.getElementById('energy-txt').textContent = ep + '%';
+  const ef = document.getElementById('energy-bar');
+  if (ep > 60) ef.style.background = 'linear-gradient(90deg,var(--neon-green),var(--neon-blue))';
+  else if (ep > 30) ef.style.background = 'linear-gradient(90deg,var(--neon-yellow),var(--neon-orange))';
+  else ef.style.background = 'linear-gradient(90deg,var(--neon-red),var(--neon-orange))';
+
+  updateXP();
+}
+function updateXP() {
+  const needed = state.xpLevel * 100;
+  const cur = state.xp % 100;
+  document.getElementById('xp-level').textContent = state.xpLevel;
+  document.getElementById('xp-bar').style.width = (cur) + '%';
+  document.getElementById('xp-txt').textContent = `${cur}/100`;
+  if (state.xp >= needed) {
+    state.xpLevel++;
+    state.xp = 0;
+    showBadge('🌟', `LEVEL ${state.xpLevel}`);
+    showToast(`Level Up! You are now Level ${state.xpLevel}!`);
+  }
+}
+
+/* ============================================================
+   UTILITIES
+   ============================================================ */
+function shuffle(arr) {
+  for (let i = arr.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+  return arr;
+}
+function showToast(msg, dur=2500) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), dur);
+}
+function showComboPop(msg) {
+  const el = document.getElementById('combo-pop');
+  el.textContent = msg;
+  el.classList.add('show');
+  setTimeout(() => el.classList.remove('show'), 900);
+}
+function flashScreen(color) {
+  const overlay = document.createElement('div');
+  overlay.style.cssText = `
+    position:fixed;inset:0;z-index:900;pointer-events:none;
+    background:${color === 'red' ? 'rgba(255,0,0,.15)' : 'rgba(0,255,100,.15)'};
+    animation:fadeInUp .4s;
+  `;
+  document.body.appendChild(overlay);
+  setTimeout(() => overlay.remove(), 400);
+}
+function openOverlay(title, body) {
+  document.getElementById('popup-title').textContent = title;
+  document.getElementById('popup-body').textContent = body;
+  document.getElementById('overlay').classList.add('show');
+}
+function closeOverlay() {
+  document.getElementById('overlay').classList.remove('show');
+}
+function showBadge(icon, name) {
+  const bp = document.getElementById('badge-popup');
+  document.getElementById('badge-icon').textContent = icon;
+  document.getElementById('badge-name').textContent = name;
+  bp.classList.add('show');
+  setTimeout(() => bp.classList.remove('show'), 3000);
+}
+function confirmAbort() {
+  openOverlay('ABORT MISSION?', 'Are you sure you want to abandon this mission? All progress will be lost.');
+  document.querySelector('#popup-inner .btn').onclick = () => {
+    closeOverlay();
+    clearTimer();
+    clearAllEvents();
+    showScreen('screen-menu');
+  };
+}
+
+/* ============================================================
+   BADGES
+   ============================================================ */
+const BADGES_EARNED = new Set();
+function checkBadges() {
+  if (state.streak === 3 && !BADGES_EARNED.has('streak3')) {
+    BADGES_EARNED.add('streak3');
+    showBadge('🔥','STREAK x3');
+  }
+  if (state.streak === 5 && !BADGES_EARNED.has('streak5')) {
+    BADGES_EARNED.add('streak5');
+    showBadge('⚡','STREAK x5');
+    showToast('Achievement: LIGHTNING STREAK!');
+  }
+  if (state.score >= 500 && !BADGES_EARNED.has('score500')) {
+    BADGES_EARNED.add('score500');
+    showBadge('🚀','500 PTS');
+  }
+  if (state.correct >= 5 && !BADGES_EARNED.has('half')) {
+    BADGES_EARNED.add('half');
+    showBadge('🛸','HALFWAY');
+  }
+}
+
+/* ============================================================
+   RANDOM EVENTS
+   ============================================================ */
+let eventTimeouts = [];
+function scheduleRandomEvents() {
+  clearAllEvents();
+  const events = [
+    { delay: 12000, fn: showEmergencyAlert },
+    { delay: 25000, fn: showCrewMessage },
+    { delay: 40000, fn: showSystemMalfunction },
+  ];
+  events.forEach(e => {
+    const t = setTimeout(e.fn, e.delay + Math.random()*5000);
+    eventTimeouts.push(t);
+  });
+}
+function clearAllEvents() {
+  eventTimeouts.forEach(t => clearTimeout(t));
+  eventTimeouts = [];
+  hideEmergency();
+}
+
+const EMERGENCY_MSGS = [
+  '⚠ WARNING — SYSTEM ANOMALY DETECTED — REMAIN CALM ⚠',
+  '🚨 HULL BREACH DETECTED IN SECTOR 7 — ENGAGE GRAMMAR SHIELDS 🚨',
+  '⚡ POWER SURGE IN LANGUAGE MODULE — STAY FOCUSED ⚡',
+  '🛸 UNIDENTIFIED SIGNAL — ALIENS REQUESTING GRAMMAR LESSON 🛸',
+];
+const CREW_MSGS = [
+  'Navigator ZX-9: "Great work on conditionals, cadet!"',
+  'Captain NOVA: "Keep studying — the galaxy depends on it!"',
+  'Engineer BLIP: "If I knew grammar better, I would fix this faster!"',
+  'AI ASTRA: "First conditional detected. Mission proceeding normally."',
+];
+
+function showEmergencyAlert() {
+  const banner = document.getElementById('emergency-banner');
+  banner.textContent = EMERGENCY_MSGS[Math.floor(Math.random()*EMERGENCY_MSGS.length)];
+  banner.classList.add('show');
+  playTone(330,'sawtooth',.5,.15);
+  setTimeout(hideEmergency, 5000);
+}
+function hideEmergency() {
+  document.getElementById('emergency-banner').classList.remove('show');
+}
+function showCrewMessage() {
+  const msg = CREW_MSGS[Math.floor(Math.random()*CREW_MSGS.length)];
+  showToast('📻 ' + msg, 4000);
+}
+function showSystemMalfunction() {
+  flashScreen('red');
+  showToast('⚡ SYSTEM MALFUNCTION — Grammar circuits overloaded!', 3000);
+  playTone(180,'sawtooth',.3,.2);
+}
+
+/* ============================================================
+   CONFETTI
+   ============================================================ */
+function spawnConfetti() {
+  const colors = ['#ff4466','#ffdd00','#00ff9d','#00d4ff','#bf5fff','#ff8c00'];
+  for (let i = 0; i < 50; i++) {
+    const c = document.createElement('div');
+    c.className = 'confetti-piece';
+    c.style.cssText = `
+      left:${Math.random()*100}%;
+      background:${colors[Math.floor(Math.random()*colors.length)]};
+      --cd:${(Math.random()*2+2).toFixed(1)}s;
+      --cdelay:${(Math.random()*1.5).toFixed(1)}s;
+    `;
+    document.body.appendChild(c);
+    setTimeout(() => c.remove(), 8000);
+  }
+}
+
+/* ============================================================
+   INIT
+   ============================================================ */
+window.addEventListener('load', startPreload);
+</script>
+</body>
+</html>
